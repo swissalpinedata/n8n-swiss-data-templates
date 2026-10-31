@@ -1,0 +1,140 @@
+{
+  "name": "German jobs from the Arbeitsagentur Jobbörse to Google Sheets",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 7 * * *"
+            }
+          ]
+        }
+      },
+      "id": "b24a015f-9349-5759-9a5e-97c346f9c00d",
+      "name": "Schedule",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/acts/swissalpinedata~arbeitsagentur-jobs-scraper/run-sync-get-dataset-items",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ was: \"Softwareentwickler\", wo: \"Berlin\", umkreis: 25, veroeffentlichtseit: 1, maxItems: 500 }) }}",
+        "options": {
+          "timeout": 300000
+        }
+      },
+      "id": "d3b98531-8ddb-5189-abc8-06e2075677c7",
+      "name": "Run Apify actor",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        220,
+        300
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "",
+          "name": "Apify token (Authorization: Bearer ...)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Keep only flat values so every field fits in one sheet cell.\nreturn $input.all().map(({ json }) => ({\n  json: Object.fromEntries(Object.entries(json).filter(([, v]) => v === null || typeof v !== \"object\")),\n}));\n"
+      },
+      "id": "8788e37a-02ea-542d-b176-ce540bd6406a",
+      "name": "Pick columns",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Sheet1"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "refnr"
+          ]
+        },
+        "options": {}
+      },
+      "id": "8004e3a6-b466-5060-b33c-9a6ee21ca41f",
+      "name": "Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        660,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Schedule": {
+      "main": [
+        [
+          {
+            "node": "Run Apify actor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run Apify actor": {
+      "main": [
+        [
+          {
+            "node": "Pick columns",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pick columns": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": false
+  }
+}
