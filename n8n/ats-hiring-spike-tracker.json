@@ -1,0 +1,457 @@
+{
+  "name": "Track hiring spikes from Personio, Workable, Recruitee and Teamtailor career sites",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {
+        "content": "### How it works\nThis workflow helps sales teams, recruiters and investors notice when a company starts hiring. Every Monday it fetches all open jobs from a watchlist of company career sites on Personio, Workable, Recruitee, SmartRecruiters and Teamtailor through an Apify actor. It keeps the roles you care about, compares job URLs with your Google Sheet and stores only new ones. You then get one report that ranks companies by new openings and highlights hiring spikes. The first run only saves a baseline, so you are not flooded with every open job. A failed Apify run sends an alert.\n\n### Setup\nYou need an Apify account (the free plan works, the actor charges per job), Google Sheets and Gmail.\n1. Create a Header Auth credential: name `Authorization`, value `Bearer YOUR_APIFY_TOKEN`.\n2. Create a sheet with a tab named `Jobs` and these columns in row 1: url, company, title, department, location, remote, ats, published, first_seen.\n3. Fill in the Configuration node: companies, sheet URL, tab name, your email.\n4. Connect Google Sheets and Gmail, run once to save the baseline, then activate.\n\n### Customization\nAdd career page URLs to `companies`, comma separated. Use titleKeywords such as sales,engineer to track only some roles. Change spikeThreshold to set how many new jobs count as a spike. Reposted jobs with a new URL count as new.",
+        "height": 640,
+        "width": 520
+      },
+      "id": "fe4c00f0-78c4-5218-be94-77241470663c",
+      "name": "Note 1",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -600,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Collect open jobs\nLoads your watchlist and fetches every open job from the company career sites through one Apify run.",
+        "height": 300,
+        "width": 600,
+        "color": 7
+      },
+      "id": "41861d4f-97ca-5dc7-a3f1-be85231f42ad",
+      "name": "Note 2",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Spot what changed\nKeeps the roles you care about and compares job URLs with the sheet, so only new openings continue.",
+        "height": 300,
+        "width": 600,
+        "color": 7
+      },
+      "id": "f9e6e544-7a84-5373-b4f4-b8cfdffc5607",
+      "name": "Note 3",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        620,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Log and report\nStores new jobs, then ranks companies by new openings. The first run only saves a baseline.",
+        "height": 300,
+        "width": 620,
+        "color": 7
+      },
+      "id": "10c278ae-3ca1-57c0-ac8d-71f0d4bec983",
+      "name": "Note 4",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1260,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Failed Apify run\nSends an alert so a failed week is not mistaken for a week without new jobs.",
+        "height": 240,
+        "width": 520,
+        "color": 7
+      },
+      "id": "52aa26d8-a34e-583a-b849-f1b31108a3b5",
+      "name": "Note 5",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        460,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 8 * * 1"
+            }
+          ]
+        }
+      },
+      "id": "77721dcf-5b87-5410-8f51-addcc5577a1b",
+      "name": "Every Monday at 08:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "57751516-0eeb-5380-95e0-4b8ac7931097",
+              "name": "companies",
+              "value": "https://ottonova.jobs.personio.de,https://apply.workable.com/blueground,https://bunq.recruitee.com,https://polestar.teamtailor.com",
+              "type": "string"
+            },
+            {
+              "id": "05b5b342-0a17-546d-ae58-35e501d6630a",
+              "name": "titleKeywords",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "17797868-5b6c-5970-af8e-5f0808c07dd1",
+              "name": "spikeThreshold",
+              "value": 3,
+              "type": "number"
+            },
+            {
+              "id": "7c71c24a-ef7d-5fbc-8e33-356af5418d2d",
+              "name": "maxItems",
+              "value": 2000,
+              "type": "number"
+            },
+            {
+              "id": "2de62aaf-a9be-5fd6-a708-33528684e3d1",
+              "name": "sheetUrl",
+              "value": "https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit",
+              "type": "string"
+            },
+            {
+              "id": "82cff252-06e7-57b0-ab45-6bb02ab1fea1",
+              "name": "sheetTab",
+              "value": "Jobs",
+              "type": "string"
+            },
+            {
+              "id": "7b0a4e70-dc62-55df-9263-36bfda46fab5",
+              "name": "notifyEmail",
+              "value": "you@example.com",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c767ba79-9ad2-55cd-b227-f148292e88ba",
+      "name": "Configuration",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/acts/swissalpinedata~eu-ats-jobs/run-sync-get-dataset-items",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ companies: $json.companies.split(\",\").map((c) => c.trim()).filter(Boolean), includeDescription: false, maxItems: Number($json.maxItems) }) }}",
+        "options": {
+          "timeout": 300000
+        }
+      },
+      "id": "f3b25038-d2ad-5e53-9aee-23e3dcac28e2",
+      "name": "Fetch open jobs from career sites",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        300
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "",
+          "name": "Apify API token"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const list = (s) => String(s ?? '').split(',').map((x) => x.trim().toLowerCase()).filter(Boolean);\nconst c = $('Configuration').first().json;\nconst words = list(c.titleKeywords);\nconst today = $now.toFormat('yyyy-MM-dd');\n\nconst rows = [];\nfor (const { json: r } of $input.all()) {\n  const title = String(r.title ?? '').toLowerCase();\n  if (!r.url) continue;\n  if (words.length && !words.some((w) => title.includes(w))) continue;\n  rows.push({\n    json: {\n      url: r.url,\n      company: r.company_name ?? r.company_slug ?? '',\n      title: r.title ?? '',\n      department: r.department ?? '',\n      location: r.location ?? '',\n      remote: r.remote ?? '',\n      ats: r.source ?? '',\n      published: r.published_at ?? '',\n      first_seen: today,\n    },\n  });\n}\nreturn rows;\n"
+      },
+      "id": "ff73a348-d595-56bb-a1c3-a647a684d366",
+      "name": "Keep relevant roles",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "={{ $('Configuration').first().json.sheetUrl }}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "={{ $('Configuration').first().json.sheetTab }}"
+        },
+        "options": {}
+      },
+      "id": "061efd5a-eeec-5285-a52d-176f6aa2ee0b",
+      "name": "Read known jobs from sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        880,
+        300
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "",
+          "name": "Google Sheets account"
+        }
+      },
+      "executeOnce": true,
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// A job counts as new when its URL is not in the sheet yet.\nconst known = new Set($input.all().map((i) => String(i.json.url ?? '')).filter(Boolean));\nconst fresh = [];\nfor (const item of $('Keep relevant roles').all()) {\n  if (known.has(item.json.url)) continue;\n  known.add(item.json.url);\n  fresh.push({ json: item.json });\n}\nreturn fresh;\n"
+      },
+      "id": "22a0f8a9-acef-5ae6-b0d0-b742c649a227",
+      "name": "Find jobs not seen before",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "={{ $('Configuration').first().json.sheetUrl }}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "={{ $('Configuration').first().json.sheetTab }}"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {}
+        },
+        "options": {}
+      },
+      "id": "3bc4e74b-54f4-502b-981a-3d911a0a5159",
+      "name": "Add new jobs to sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1320,
+        300
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst c = $('Configuration').first().json;\nconst min = Number(c.spikeThreshold);\nconst rows = $('Find jobs not seen before').all().map((i) => i.json);\nconst firstRun = !$('Read known jobs from sheet').all().some((i) => i.json.url);\n\nconst byCompany = {};\nfor (const r of rows) (byCompany[r.company] ??= []).push(r);\nconst ranked = Object.entries(byCompany).sort((a, b) => b[1].length - a[1].length);\n\nif (firstRun) {\n  return [{ json: {\n    subject: `Hiring tracker baseline saved: ${rows.length} open jobs`,\n    html: `<p>First run: ${rows.length} open jobs from ${ranked.length} companies are now stored as the baseline. ` +\n      'From the next run on you only get jobs that are new.</p>',\n  } }];\n}\n\nconst spikes = ranked.filter(([, jobs]) => jobs.length >= min);\nconst part = ([name, jobs]) => `<h3>${esc(name)}: ${jobs.length} new</h3><ul>` +\n  jobs.map((j) => `<li><a href=\"${esc(j.url)}\">${esc(j.title)}</a> ${esc(j.location)}</li>`).join('') + '</ul>';\nconst others = ranked.filter(([, jobs]) => jobs.length < min);\nconst html = (spikes.length ? `<h2>Hiring spikes (${min} or more new jobs)</h2>${spikes.map(part).join('')}` : '') +\n  (others.length ? `<h2>Other new jobs</h2>${others.map(part).join('')}` : '');\nreturn [{ json: {\n  subject: `New jobs: ${rows.length}, hiring spikes: ${spikes.length}`,\n  html,\n} }];\n"
+      },
+      "id": "6c7ce105-c6aa-581c-b645-cdf5311b2d0b",
+      "name": "Rank companies by new jobs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1540,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "={{ $('Configuration').first().json.notifyEmail }}",
+        "subject": "={{ $json.subject }}",
+        "emailType": "html",
+        "message": "={{ $json.html }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "b4d01b20-f613-5a9c-8e47-4268ba3f3d31",
+      "name": "Email the hiring report",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1760,
+        300
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "={{ $('Configuration').first().json.notifyEmail }}",
+        "subject": "Hiring tracker workflow failed",
+        "emailType": "html",
+        "message": "=<p>The Apify run failed, so this run produced no result.</p><p>{{ $json.error?.message ?? $json.error ?? 'Unknown error' }}</p><p>Check the Apify token and the run log at https://console.apify.com/actors/runs</p>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "a35c9231-c1ff-5cd9-bf9d-a029e5726436",
+      "name": "Alert on failed Apify run",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        660,
+        600
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "",
+          "name": "Gmail account"
+        }
+      },
+      "executeOnce": true
+    }
+  ],
+  "connections": {
+    "Every Monday at 08:00": {
+      "main": [
+        [
+          {
+            "node": "Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Configuration": {
+      "main": [
+        [
+          {
+            "node": "Fetch open jobs from career sites",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch open jobs from career sites": {
+      "main": [
+        [
+          {
+            "node": "Keep relevant roles",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Alert on failed Apify run",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Keep relevant roles": {
+      "main": [
+        [
+          {
+            "node": "Read known jobs from sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read known jobs from sheet": {
+      "main": [
+        [
+          {
+            "node": "Find jobs not seen before",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find jobs not seen before": {
+      "main": [
+        [
+          {
+            "node": "Add new jobs to sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add new jobs to sheet": {
+      "main": [
+        [
+          {
+            "node": "Rank companies by new jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rank companies by new jobs": {
+      "main": [
+        [
+          {
+            "node": "Email the hiring report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": false
+  }
+}

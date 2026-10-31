@@ -1,0 +1,381 @@
+{
+  "name": "Get a daily email of new jobs from jobs.ch, jobup.ch, JobScout24 and job-room.ch",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {
+        "content": "### How it works\nThis workflow helps job seekers in Switzerland get one daily email instead of checking four job boards. Every morning it runs each of your searches across jobs.ch, jobup.ch, JobScout24 and job-room.ch through an Apify actor. It removes excluded words and low workloads, merges the same job posted on several boards and skips jobs you already received. Days without a new job send no email. If one search fails you get an alert and the others still arrive. No spreadsheet is needed: sent jobs are stored in the workflow itself for 90 days.\n\n### Setup\nYou need an Apify account (the free plan works, the actor charges per job) and Gmail.\n1. Create a Header Auth credential: name `Authorization`, value `Bearer YOUR_APIFY_TOKEN`.\n2. Fill in the Configuration node: one search per line as `keyword | place`, your exclude words, minimum workload and email.\n3. Connect Gmail and run once to check the email.\n4. Activate the workflow.\n\n### Customization\nAdd more search lines; each one is a separate Apify run. Set minWorkload to 0 to keep all jobs. Jobs without a stated workload are always kept.\n\nLimitation: n8n only saves the memory of sent jobs on activated workflows. Manual test runs do not, so a manual run can repeat jobs.",
+        "height": 640,
+        "width": 520
+      },
+      "id": "fe4c00f0-78c4-5218-be94-77241470663c",
+      "name": "Note 1",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -600,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Run your searches\nTurns each line of the Configuration node into one search across jobs.ch, jobup.ch, JobScout24 and job-room.ch.",
+        "height": 300,
+        "width": 820,
+        "color": 7
+      },
+      "id": "41861d4f-97ca-5dc7-a3f1-be85231f42ad",
+      "name": "Note 2",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Filter and remove repeats\nDrops excluded words and low workloads, merges the same job from different boards and skips jobs already sent.",
+        "height": 300,
+        "width": 320,
+        "color": 7
+      },
+      "id": "f9e6e544-7a84-5373-b4f4-b8cfdffc5607",
+      "name": "Note 3",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        800,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Send and remember\nSends one email, then stores the jobs so they never arrive twice. No new job means no email.",
+        "height": 300,
+        "width": 580,
+        "color": 7
+      },
+      "id": "10c278ae-3ca1-57c0-ac8d-71f0d4bec983",
+      "name": "Note 4",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1140,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Failed search\nA failed search sends an alert. The other searches still run and arrive in the digest.",
+        "height": 240,
+        "width": 520,
+        "color": 7
+      },
+      "id": "52aa26d8-a34e-583a-b849-f1b31108a3b5",
+      "name": "Note 5",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        520,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 7 * * *"
+            }
+          ]
+        }
+      },
+      "id": "345e26c8-6348-5b38-8e2a-2702cb03e662",
+      "name": "Every morning at 07:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a9d6758f-26dd-55e9-a056-eb05407a0381",
+              "name": "searches",
+              "value": "python | Zürich\ndata engineer | Bern",
+              "type": "string"
+            },
+            {
+              "id": "14669213-e4fe-52d3-a835-35fc860a9f65",
+              "name": "excludeWords",
+              "value": "praktikum,lehrstelle,stagiaire,apprenti",
+              "type": "string"
+            },
+            {
+              "id": "6f3cc13b-aa6b-5959-b908-efb9200992bc",
+              "name": "minWorkload",
+              "value": 80,
+              "type": "number"
+            },
+            {
+              "id": "726f0bd4-9708-5b79-a5c4-57d0400c0199",
+              "name": "maxPerSearch",
+              "value": 50,
+              "type": "number"
+            },
+            {
+              "id": "7b0a4e70-dc62-55df-9263-36bfda46fab5",
+              "name": "notifyEmail",
+              "value": "you@example.com",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c767ba79-9ad2-55cd-b227-f148292e88ba",
+      "name": "Configuration",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// One line per search: keyword | place. The place is optional.\nconst c = $input.first().json;\nreturn String(c.searches).split('\\n').map((l) => l.trim()).filter(Boolean).map((line) => {\n  const [query, location] = line.split('|').map((s) => s.trim());\n  return { json: { query, location: location ?? '', maxItems: Number(c.maxPerSearch) } };\n});\n"
+      },
+      "id": "d773fbf7-f028-5901-8d9b-aa81b591d457",
+      "name": "Split into one search per line",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/acts/swissalpinedata~swiss-jobs-scraper/run-sync-get-dataset-items",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ query: $json.query, location: $json.location, maxItems: $json.maxItems }) }}",
+        "options": {
+          "timeout": 300000
+        }
+      },
+      "id": "c679938f-496d-592d-8776-ff6c9767260a",
+      "name": "Search Swiss job boards",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        660,
+        300
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "",
+          "name": "Apify API token"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const list = (s) => String(s ?? '').split(',').map((x) => x.trim().toLowerCase()).filter(Boolean);\nconst c = $('Configuration').first().json;\nconst exclude = list(c.excludeWords);\nconst minLoad = Number(c.minWorkload);\nconst seen = $getWorkflowStaticData('global').seen ?? {};\n\n// The same job is often on jobs.ch and jobup.ch, so the key is title plus company, not the URL.\nconst keyOf = (r) => `${r.title ?? ''}|${r.company ?? ''}`.toLowerCase().replace(/\\s+/g, ' ').trim();\nconst topLoad = (w) => Math.max(0, ...(String(w ?? '').match(/\\d+/g) ?? []).map(Number));\n\nconst picked = new Map();\nfor (const { json: r } of $input.all()) {\n  if (!r.url || !r.title) continue;\n  const key = keyOf(r);\n  if (seen[key] || picked.has(key)) continue;\n  if (exclude.some((w) => `${r.title} ${r.company ?? ''}`.toLowerCase().includes(w))) continue;\n  const load = topLoad(r.workload);\n  if (load && load < minLoad) continue;\n  picked.set(key, { key, title: r.title, company: r.company ?? '', location: r.location ?? '',\n    workload: r.workload ?? '', board: r.source ?? '', url: r.url });\n}\nreturn [...picked.values()].map((json) => ({ json }));\n"
+      },
+      "id": "2af80ae4-c014-580c-9aef-a56aa7c07a5b",
+      "name": "Drop filtered and already sent jobs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst jobs = $input.all().map((i) => i.json);\nconst lis = jobs.map((j) => `<li><a href=\"${esc(j.url)}\">${esc(j.title)}</a><br>` +\n  `${esc(j.company)}, ${esc(j.location)} ${esc(j.workload)} (${esc(j.board)})</li>`).join('');\nreturn [{ json: { count: jobs.length, html: `<p>New jobs for your searches: ${jobs.length}</p><ul>${lis}</ul>` } }];\n"
+      },
+      "id": "172fc955-1962-5baf-b9ad-b20ec74d9d94",
+      "name": "Build job digest",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1160,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "={{ $('Configuration').first().json.notifyEmail }}",
+        "subject": "=New jobs for your searches: {{ $json.count }}",
+        "emailType": "html",
+        "message": "={{ $json.html }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "fe118854-e66c-5b73-9b54-42010bc107d7",
+      "name": "Email the job digest",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1380,
+        300
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Runs only after the email was sent, so a failed email does not lose jobs.\nconst data = $getWorkflowStaticData('global');\nconst seen = data.seen ?? {};\nconst today = $now.toFormat('yyyy-MM-dd');\nfor (const item of $('Drop filtered and already sent jobs').all()) seen[item.json.key] = today;\n\n// Forget jobs after 90 days so the memory stays small.\nconst cutoff = $now.minus({ days: 90 }).toFormat('yyyy-MM-dd');\nfor (const [key, date] of Object.entries(seen)) if (date < cutoff) delete seen[key];\ndata.seen = seen;\nreturn [{ json: { remembered: Object.keys(seen).length } }];\n"
+      },
+      "id": "7148fe44-c2f1-564f-8baf-6b0806b55f1a",
+      "name": "Remember sent jobs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1600,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "={{ $('Configuration').first().json.notifyEmail }}",
+        "subject": "Swiss job alert search failed",
+        "emailType": "html",
+        "message": "=<p>The Apify run failed, so this run produced no result.</p><p>{{ $json.error?.message ?? $json.error ?? 'Unknown error' }}</p><p>Check the Apify token and the run log at https://console.apify.com/actors/runs</p>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "a268c4e0-7104-5c13-9743-c439692efe92",
+      "name": "Alert on failed search",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        660,
+        600
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "",
+          "name": "Gmail account"
+        }
+      },
+      "executeOnce": true
+    }
+  ],
+  "connections": {
+    "Every morning at 07:00": {
+      "main": [
+        [
+          {
+            "node": "Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Configuration": {
+      "main": [
+        [
+          {
+            "node": "Split into one search per line",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split into one search per line": {
+      "main": [
+        [
+          {
+            "node": "Search Swiss job boards",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search Swiss job boards": {
+      "main": [
+        [
+          {
+            "node": "Drop filtered and already sent jobs",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Alert on failed search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Drop filtered and already sent jobs": {
+      "main": [
+        [
+          {
+            "node": "Build job digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build job digest": {
+      "main": [
+        [
+          {
+            "node": "Email the job digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email the job digest": {
+      "main": [
+        [
+          {
+            "node": "Remember sent jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": false
+  }
+}

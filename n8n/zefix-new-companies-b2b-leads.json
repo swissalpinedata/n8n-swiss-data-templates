@@ -1,0 +1,469 @@
+{
+  "name": "Find new Swiss companies from the Zefix and SHAB register as qualified B2B leads",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {
+        "content": "### How it works\nThis workflow helps Swiss agencies, accountants, insurers and B2B sales teams reach new companies in their first days. Every weekday it fetches new commercial register entries (SHAB rubric HR01, the same data as Zefix) for your cantons through an Apify actor. It keeps the legal forms you want, applies your include and exclude keywords to the name and company purpose, and skips every company already in your Google Sheet. New companies are added to the sheet and you get one email summary. Days without a match send nothing. A failed Apify run sends an alert.\n\n### Setup\nYou need an Apify account (the free plan works, the actor charges per record), Google Sheets and Gmail.\n1. Create a Header Auth credential: name `Authorization`, value `Bearer YOUR_APIFY_TOKEN`.\n2. Create a sheet with a tab named `Leads` and these columns in row 1: uid, name, legal_form, seat, canton, address, purpose, matched_keywords, published, shab_url.\n3. Fill in the Configuration node: cantons, sheet URL, tab name, your email.\n4. Connect Google Sheets and Gmail, run once and check the sheet.\n\n### Customization\nLegal form codes: 0106 AG, 0107 GmbH, 0101 sole proprietorship. Leave includeKeywords empty to keep all companies. Publication takes a few days after founding, so lookbackDays covers weekends.",
+        "height": 640,
+        "width": 520
+      },
+      "id": "fe4c00f0-78c4-5218-be94-77241470663c",
+      "name": "Note 1",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -600,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Fetch new registrations\nLoads the settings and asks Apify for fresh HR01 notices from the Swiss Official Gazette of Commerce.",
+        "height": 300,
+        "width": 600,
+        "color": 7
+      },
+      "id": "41861d4f-97ca-5dc7-a3f1-be85231f42ad",
+      "name": "Note 2",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Keep real leads\nDrops other legal forms and excluded words, then removes every company already in your sheet.",
+        "height": 300,
+        "width": 600,
+        "color": 7
+      },
+      "id": "f9e6e544-7a84-5373-b4f4-b8cfdffc5607",
+      "name": "Note 3",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        620,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Save and notify\nAdds new companies to the sheet, then emails one summary. No new company means no email.",
+        "height": 300,
+        "width": 620,
+        "color": 7
+      },
+      "id": "10c278ae-3ca1-57c0-ac8d-71f0d4bec983",
+      "name": "Note 4",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1260,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Failed Apify run\nA bad token, no credit or a timeout lands here, so a silent gap in your lead list cannot happen.",
+        "height": 240,
+        "width": 520,
+        "color": 7
+      },
+      "id": "52aa26d8-a34e-583a-b849-f1b31108a3b5",
+      "name": "Note 5",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        460,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 7 * * 1-5"
+            }
+          ]
+        }
+      },
+      "id": "b18482d4-bf16-586f-a2f3-7a2e21d3638d",
+      "name": "Every weekday at 07:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7c51e134-1e93-5f58-9671-6848e80ba049",
+              "name": "cantons",
+              "value": "ZH,ZG",
+              "type": "string"
+            },
+            {
+              "id": "586816b7-b767-507b-b4f3-dc952f1cdb6b",
+              "name": "legalFormCodes",
+              "value": "0106,0107",
+              "type": "string"
+            },
+            {
+              "id": "4c3a3e6a-3740-598c-a9b4-971e1906e11a",
+              "name": "includeKeywords",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "38ef6075-7926-59ae-b3e3-d83b1ef787df",
+              "name": "excludeKeywords",
+              "value": "holding,immobilien",
+              "type": "string"
+            },
+            {
+              "id": "2032990a-3d05-5508-8127-61f0791446bd",
+              "name": "lookbackDays",
+              "value": 4,
+              "type": "number"
+            },
+            {
+              "id": "7c71c24a-ef7d-5fbc-8e33-356af5418d2d",
+              "name": "maxItems",
+              "value": 500,
+              "type": "number"
+            },
+            {
+              "id": "2de62aaf-a9be-5fd6-a708-33528684e3d1",
+              "name": "sheetUrl",
+              "value": "https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit",
+              "type": "string"
+            },
+            {
+              "id": "82cff252-06e7-57b0-ab45-6bb02ab1fea1",
+              "name": "sheetTab",
+              "value": "Leads",
+              "type": "string"
+            },
+            {
+              "id": "7b0a4e70-dc62-55df-9263-36bfda46fab5",
+              "name": "notifyEmail",
+              "value": "you@example.com",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c767ba79-9ad2-55cd-b227-f148292e88ba",
+      "name": "Configuration",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/acts/swissalpinedata~swiss-company-register-scraper/run-sync-get-dataset-items",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ mode: \"new-companies\", cantons: $json.cantons.split(\",\").map((c) => c.trim().toUpperCase()).filter(Boolean), subRubrics: [\"HR01\"], dateFrom: $today.minus({ days: Number($json.lookbackDays) }).toFormat(\"yyyy-MM-dd\"), maxItems: Number($json.maxItems) }) }}",
+        "options": {
+          "timeout": 300000
+        }
+      },
+      "id": "f6c7fac3-5ca2-5205-82a0-22a05cfa1053",
+      "name": "Fetch new registrations from SHAB",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        300
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "",
+          "name": "Apify API token"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const list = (s) => String(s ?? '').split(',').map((x) => x.trim().toLowerCase()).filter(Boolean);\nconst c = $('Configuration').first().json;\nconst codes = list(c.legalFormCodes);\nconst include = list(c.includeKeywords);\nconst exclude = list(c.excludeKeywords);\n\nconst rows = [];\nfor (const { json: r } of $input.all()) {\n  const text = `${r.name ?? ''} ${r.purpose ?? ''}`.toLowerCase();\n  if (codes.length && !codes.includes(String(r.legal_form_code))) continue;\n  if (exclude.some((w) => text.includes(w))) continue;\n  const hits = include.filter((w) => text.includes(w));\n  if (include.length && !hits.length) continue;\n  rows.push({\n    json: {\n      uid: r.uid,\n      name: r.name,\n      legal_form: r.legal_form,\n      seat: r.seat,\n      canton: r.canton,\n      address: r.address ?? '',\n      purpose: r.purpose ?? '',\n      matched_keywords: hits.join(', '),\n      published: r.publication_date,\n      shab_url: r.url,\n    },\n  });\n}\nreturn rows;\n"
+      },
+      "id": "7488de5e-3386-540f-9200-ab42b853b8d6",
+      "name": "Match target profile",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "={{ $('Configuration').first().json.sheetUrl }}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "={{ $('Configuration').first().json.sheetTab }}"
+        },
+        "options": {}
+      },
+      "id": "6b4ab6bd-56c6-5d63-ad79-aff5077c2262",
+      "name": "Read companies already in sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        880,
+        300
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "",
+          "name": "Google Sheets account"
+        }
+      },
+      "executeOnce": true,
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Rows already in the sheet are skipped, so the overlapping date window never adds a company twice.\nconst known = new Set($input.all().map((i) => String(i.json.uid ?? '')).filter(Boolean));\nconst fresh = [];\nfor (const item of $('Match target profile').all()) {\n  if (known.has(item.json.uid)) continue;\n  known.add(item.json.uid);\n  fresh.push({ json: item.json });\n}\nreturn fresh;\n"
+      },
+      "id": "e20a7612-29f6-5a54-bad4-cff739078144",
+      "name": "Keep only new companies",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "={{ $('Configuration').first().json.sheetUrl }}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "={{ $('Configuration').first().json.sheetTab }}"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {}
+        },
+        "options": {}
+      },
+      "id": "a4b15137-a4be-521b-9e1b-b259a774aad5",
+      "name": "Add new companies to sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1320,
+        300
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst rows = $('Keep only new companies').all().map((i) => i.json);\nconst trs = rows.map((r) => `<tr><td><a href=\"${esc(r.shab_url)}\">${esc(r.name)}</a></td><td>${esc(r.legal_form)}</td>` +\n  `<td>${esc(r.seat)}</td><td>${esc(r.purpose.slice(0, 160))}</td></tr>`).join('');\nconst html = `<p>New companies for your profile: ${rows.length}</p>` +\n  `<table border=\"1\" cellpadding=\"6\" cellspacing=\"0\"><tr><th>Company</th><th>Legal form</th><th>Seat</th><th>Purpose</th></tr>${trs}</table>`;\nreturn [{ json: { count: rows.length, html } }];\n"
+      },
+      "id": "b9b0368d-033c-50e0-bd75-7251804e5d35",
+      "name": "Build email summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1540,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "={{ $('Configuration').first().json.notifyEmail }}",
+        "subject": "=New Swiss companies for your profile: {{ $json.count }}",
+        "emailType": "html",
+        "message": "={{ $json.html }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "22c71d7b-7938-5d55-8fac-105f458d0146",
+      "name": "Email the new leads",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1760,
+        300
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "={{ $('Configuration').first().json.notifyEmail }}",
+        "subject": "New Swiss companies workflow failed",
+        "emailType": "html",
+        "message": "=<p>The Apify run failed, so this run produced no result.</p><p>{{ $json.error?.message ?? $json.error ?? 'Unknown error' }}</p><p>Check the Apify token and the run log at https://console.apify.com/actors/runs</p>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "a35c9231-c1ff-5cd9-bf9d-a029e5726436",
+      "name": "Alert on failed Apify run",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        660,
+        600
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "",
+          "name": "Gmail account"
+        }
+      },
+      "executeOnce": true
+    }
+  ],
+  "connections": {
+    "Every weekday at 07:00": {
+      "main": [
+        [
+          {
+            "node": "Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Configuration": {
+      "main": [
+        [
+          {
+            "node": "Fetch new registrations from SHAB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch new registrations from SHAB": {
+      "main": [
+        [
+          {
+            "node": "Match target profile",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Alert on failed Apify run",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Match target profile": {
+      "main": [
+        [
+          {
+            "node": "Read companies already in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read companies already in sheet": {
+      "main": [
+        [
+          {
+            "node": "Keep only new companies",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Keep only new companies": {
+      "main": [
+        [
+          {
+            "node": "Add new companies to sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add new companies to sheet": {
+      "main": [
+        [
+          {
+            "node": "Build email summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build email summary": {
+      "main": [
+        [
+          {
+            "node": "Email the new leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": false
+  }
+}

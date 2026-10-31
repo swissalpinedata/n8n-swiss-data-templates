@@ -2,14 +2,36 @@
 
 Ready to import n8n workflows (and Make scenario guides) that pull Swiss and DACH public data through Apify actors by [Swiss Alpine Data](https://apify.com/swissalpinedata) and write it to Google Sheets on a schedule. No community nodes needed.
 
-## Setup
+## Full workflows
+
+Complete templates with deduplication, filters, email reports, failure alerts and setup notes inside the workflow. Tested end to end on n8n Cloud.
+
+### Find new Swiss companies from the Zefix and SHAB register as qualified B2B leads
+
+Every weekday: new register entries for your cantons, filtered by legal form and keywords, new companies added to a Google Sheet, one email summary.
+
+File: [`n8n/zefix-new-companies-b2b-leads.json`](n8n/zefix-new-companies-b2b-leads.json). Actor: https://apify.com/swissalpinedata/swiss-company-register-scraper
+
+### Track hiring spikes from Personio, Workable, Recruitee and Teamtailor career sites
+
+Every Monday: open jobs from your company watchlist, new ones stored in a Google Sheet, one report ranking companies by new openings.
+
+File: [`n8n/ats-hiring-spike-tracker.json`](n8n/ats-hiring-spike-tracker.json). Actor: https://apify.com/swissalpinedata/eu-ats-jobs
+
+### Get a daily email of new jobs from jobs.ch, jobup.ch, JobScout24 and job-room.ch
+
+Every morning: your searches across four Swiss job boards, duplicates merged, jobs you already received skipped. No spreadsheet needed.
+
+File: [`n8n/swiss-job-alert-email.json`](n8n/swiss-job-alert-email.json). Actor: https://apify.com/swissalpinedata/swiss-jobs-scraper
+
+## Simple templates: setup
 
 1. Get an Apify API token at https://console.apify.com/settings/integrations (free plan works).
 2. In n8n create a Header Auth credential: name `Authorization`, value `Bearer YOUR_TOKEN`, and select it in the "Run Apify actor" node.
 3. Create a Google Sheet with the column names from the "Pick columns" node in row 1, paste its URL into the Google Sheets node.
 4. Change the input (keywords, cantons, companies) in the HTTP Request body. Each actor page lists all input fields.
 
-## Templates
+## Simple templates
 
 ### New Swiss companies (Zefix, SHAB) to Google Sheets
 
